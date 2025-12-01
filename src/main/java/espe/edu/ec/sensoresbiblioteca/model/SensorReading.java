@@ -1,7 +1,6 @@
 package espe.edu.ec.sensoresbiblioteca.model;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 
 public class SensorReading {
     private String id;

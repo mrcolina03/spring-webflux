@@ -2,11 +2,13 @@ package espe.edu.ec.sensoresbiblioteca.repository;
 
 import espe.edu.ec.sensoresbiblioteca.model.SensorReading;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 
-import java.util.ArrayList;
+import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class SensorReadingRepository {
 
@@ -15,13 +17,17 @@ public class SensorReadingRepository {
 
     //Creamos el set
     //Aki se aplica el consepto de fluido
-    private final Sinks.Many<SensorReading> sink = Sinks.many().multicast().onBackpressureBuffer();
-
+    private final AtomicReference<Sinks.Many<SensorReading>> sinkRef = new AtomicReference<>(
+            Sinks.many().multicast().onBackpressureBuffer()
+    );
 
     //Guarda una lectura y la emite al stream
     public void save(SensorReading reading){
+        if (reading.getTimestamp() == null) {
+            reading.setTimestamp(Instant.now());
+        }
         storage.add(reading);//guarda la lectura en la lista
-        sink.tryEmitNext(reading);//emite la lectura al stream
+        sinkRef.get().tryEmitNext(reading);//emite la lectura al stream
 
     }
 
@@ -30,10 +36,16 @@ public class SensorReadingRepository {
         return Flux.fromIterable(storage);//devuelve la lista como un flux de forma iterativa
     }
 
-
     //Devuelve un stream de lecturas donde cada nueva lectura de va a emitir
-
     public Flux<SensorReading> streamAll(){
-        return sink.asFlux();//devuelve el stream de lecturas
-}
+        return sinkRef.get().asFlux();//devuelve el stream de lecturas
+    }
+
+    //TAREA 17: borrar lecturas y reiniciar el hot stream
+    public Mono<Void> clear(){
+        storage.clear();
+        sinkRef.get().tryEmitComplete();
+        sinkRef.set(Sinks.many().multicast().onBackpressureBuffer());
+        return Mono.empty();
+    }
 }
