@@ -43,4 +43,14 @@ public class SensorController {
     public Mono<Double> getAverageTemperature() {
         return sensorService.averageTemperature();
     }
+
+    @GetMapping("/{id}/average")
+    public Mono<Double> getAverageTemperatureBySensor(@PathVariable String id) {
+        return sensorService.averageTemperatureBySensor(id);
+    }
+
+    @GetMapping("/generate")
+    public Mono<String> generateReadings() {
+        return sensorService.generateAutomaticReadings();
+    }
 }

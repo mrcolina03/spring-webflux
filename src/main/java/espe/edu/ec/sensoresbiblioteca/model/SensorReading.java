@@ -41,6 +41,5 @@ public class SensorReading {
     public void setTimestamp(Instant timestamp) {
         this.timestamp = timestamp;
     }
-    
-}
 
+}
